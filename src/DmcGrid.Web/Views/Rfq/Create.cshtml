@@ -1,0 +1,10 @@
+@model Rfq
+@{
+    ViewData["Title"] = Model.RfqId == 0 ? "Create RFQ" : $"Edit {Model.RfqNo}";
+    const string placeholder = "Thailand in October for 2 adults, 6 nights. Central 4-star hotels, private car, vegetarian Indian food. Keep it relaxed, budget around ₹2 lakh.";
+}
+<section id="rfq" class="page active"><header class="top"><div><a class="btn" asp-controller="Agent" asp-action="Index">←</a> <b>@(Model.RfqId == 0 ? "Create RFQ" : $"Edit draft · {Model.RfqNo}")</b></div><button class="btn" id="saveDraft">Save draft</button></header><div class="shell"><div class="rfqHead"><div class="modeSwitch"><button class="on" data-mode="ai">✨ Describe with AI</button><button data-mode="tabs">☰ Build with Tabs</button></div><span class="sub">Both modes edit the same RFQ.</span></div><div id="aiMode" class="aiBox"><div class="card aiCompose"><span class="eyebrow">AI RFQ COPILOT</span><h2>Describe the trip naturally</h2><textarea id="natural" maxlength="2000" placeholder="@placeholder">@Model.NaturalText</textarea><div class="nav" style="margin-top:8px"><button class="btn primary" id="structure">✨ Structure RFQ</button><button class="btn" id="voice">🎙 Voice</button></div><div id="extracts" class="extracts"></div></div><aside class="aiSide"><span class="eyebrow" style="color:#75d8cb">HOW AI WORKS</span><p>I extract only what the agent actually says. Missing fields stay unselected. The agent reviews everything in the tap-style RFQ before publishing.</p><p id="aiReply">Ready to structure this request.</p></aside></div><div id="tabMode" class="hidden"><div id="rfqTabs" class="tabs"></div><div class="card"><div id="rfqPanel"></div><div class="wizardFooter"><button class="btn" id="prev">← Previous</button><button class="btn" id="next">Next →</button></div></div></div><div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn primary" id="publish">Publish RFQ</button></div></div></section>
+@section Scripts {
+    <script>window.rfqModel = @Json.Serialize(Model);</script>
+    <script src="~/js/rfq.js" asp-append-version="true"></script>
+}

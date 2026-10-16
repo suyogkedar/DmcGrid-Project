@@ -1,0 +1,35 @@
+@model ProposalViewModel
+@{
+    var p = Model.Proposal;
+    ViewData["Title"] = $"Proposal · {Model.Rfq.RfqNo}";
+    string Num(decimal d) => d.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+    var costTypes = new[] { "Flight", "Local Cab", "Visa", "Travel Insurance", "Attraction / Ticket", "Guide", "Other" };
+}
+<section id="proposal" class="page active"><header class="top"><div><a class="btn" asp-controller="Compare" asp-action="Index" asp-route-id="@p.RfqId">←</a> <b>Finalize Itinerary &amp; Customer Proposal</b><span class="sub"> · @Model.Rfq.RfqNo · @p.SourceLabel</span></div><a class="btn" asp-controller="Agent" asp-action="Index">Back to RFQs</a></header><div class="shell"><div class="steps"><span class="step done">✓ RFQ</span><span class="step done">✓ Quotes</span><span class="step done">✓ Compare</span><span class="step done">✓ Connect</span><span class="step now">5 Finalize Proposal</span><span class="step">6 Customer</span></div><div class="dealFinance card">
+<div class="financeHead"><div><span class="eyebrow">AGENT INTERNAL DEAL SHEET</span><h2>Trip costs, customer charges &amp; profitability</h2><div class="sub">Add services arranged directly by the agent. These costs and margins are internal and will not appear in the customer PDF.</div></div><span class="pill" id="approvalStatus"></span></div>
+<div class="costEntry">
+<select id="costType">
+@foreach (var type in costTypes)
+{
+    <option>@type</option>
+}
+</select>
+<input id="costDesc" placeholder="Description" maxlength="300">
+<input id="costRetail" type="number" min="0" inputmode="numeric" placeholder="Agent cost ₹">
+<input id="costCharge" type="number" min="0" inputmode="numeric" placeholder="Charge to customer ₹">
+<button class="btn" id="addDealCost">+ Add service</button>
+</div>
+<div class="costTable" id="dealCostTable"></div>
+<div class="financeBottom">
+<div class="taxTrack"><span class="eyebrow">TDS / WITHHOLDING TRACKER</span><div class="two"><div class="field"><label>TDS already paid / deducted ₹</label><input id="tdsPaid" type="number" min="0" value="@Num(p.TdsPaid)"></div><div class="field"><label>TDS payable to Government ₹</label><input id="tdsPayable" type="number" min="0" value="@Num(p.TdsPayable)"></div></div><div class="sub">Internal cash/tax tracker. Production treatment should use configurable tax rules validated by finance/tax.</div></div>
+<div class="profitBox" id="profitSummary"></div>
+</div>
+<div class="managerFlow"><div><b>Manager approval</b><div class="sub">Manager sees the final itinerary, DMC cost, ancillary costs, customer charges, taxes and deal profitability.</div></div><div class="nav"><button class="btn primary" id="sendManager">Send to Manager →</button><button class="btn" id="managerApprove" style="display:none">Manager Approve ✓</button></div></div>
+</div><div class="finalGrid"><div class="card"><span class="eyebrow">COMMERCIALS</span><h2>Price &amp; branding</h2><div class="field"><label>Selected DMC net package cost</label><input id="net" type="number" min="0" value="@Num(p.NetCost)"></div><div class="three"><div class="field"><label>Margin type</label><select id="marginType"><option selected="@(p.MarginType != "Fixed")">Percentage</option><option selected="@(p.MarginType == "Fixed")">Fixed</option></select></div><div class="field"><label>Margin</label><input id="margin" type="number" min="0" value="@Num(p.Margin)"></div><div class="field"><label>GST %</label><input id="gst" type="number" min="0" max="100" value="@Num(p.GstPct)"></div></div><div class="three"><div class="field"><label>TCS %</label><input id="tcs" type="number" min="0" max="100" value="@Num(p.TcsPct)"></div><div class="field"><label>Travellers</label><input id="travellers" type="number" min="1" value="@p.Travellers"></div><div class="field"><label>Validity</label><input id="validity" maxlength="50" value="@p.Validity"></div></div><div class="calc"><b>Per-deal pricing:</b> margin is deal-specific. Tax treatment is configurable in production.</div><div id="breakdown" class="breakdown"></div><button class="btn primary" id="recalc">Recalculate Proposal</button><hr style="border:0;border-top:1px solid var(--line);margin:14px 0"><span class="eyebrow">AGENT BRANDING</span><div class="field"><label>Brand / Agency Name</label><input id="brand" maxlength="200" value="@p.BrandName"></div><div class="field"><label>Customer display title</label><input id="title" maxlength="200" value="@p.Title"></div><div class="field"><label>GST Number</label><input id="gstNumber" maxlength="30" value="@p.GstNumber"></div><div class="field"><label>Contact / Email</label><input id="contact" maxlength="200" value="@p.Contact"></div></div><div class="card"><span class="eyebrow">FINAL CUSTOMER ITINERARY</span><h2>Finalize itinerary before customer PDF</h2><div class="aiStrip"><b>✨ AI Proposal Copilot:</b> polishes customer-facing language without changing confirmed services or commercial data.</div><div class="dayEditorHead"><div class="sub">Select a day, then edit its complete time-wise plan.</div><button class="btn" id="editDayBtn">✎ Edit Day 1</button></div>
+<div class="dayEditTabs" id="dayEditTabs"></div>
+<div id="dayEditBody"></div>
+<div class="nav" style="margin-top:8px"><button class="btn" id="polish">✨ Polish with AI</button></div><div class="field"><label>Customer-facing inclusions</label><textarea id="inclusions" maxlength="2000">@p.Inclusions</textarea></div><div class="field"><label>Customer-facing exclusions</label><textarea id="exclusions" maxlength="2000">@p.Exclusions</textarea></div><button class="btn primary" id="generate">Generate Customer Proposal</button><div class="sub" id="approvalHint" style="margin-top:6px"></div></div></div></div></section>
+@section Scripts {
+    <script>window.proposalModel = @Json.Serialize(p);</script>
+    <script src="~/js/proposal.js" asp-append-version="true"></script>
+}

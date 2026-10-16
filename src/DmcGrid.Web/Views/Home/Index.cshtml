@@ -1,0 +1,11 @@
+@model MarketPulse
+@{
+    ViewData["Title"] = "B2B Travel Marketplace";
+    var maxCoverage = Math.Max(1, Model.Coverage.Count > 0 ? Model.Coverage.Max(c => c.Dmcs) : 1);
+}
+<section id="home" class="page active"><header class="top"><div class="brand">DMC<i>Grid</i><span class="version">ENTERPRISE</span></div><div class="nav"><a class="btn" asp-action="Pricing">Pricing</a><a class="btn coral" asp-controller="Account" asp-action="Login">Login / Register</a></div></header><div class="shell"><div class="hero"><div><span class="eyebrow">AI-ENABLED B2B TRAVEL MARKETPLACE</span><h1>Source smarter.<br><span>Sell beautifully.</span></h1><p>One structured RFQ reaches relevant DMCs. Compare package options, connect with up to two DMCs and turn the selected quote into a branded customer itinerary.</p><div class="heroBtns"><a class="btn dark" asp-controller="Account" asp-action="Login">Travel Agent →</a><a class="btn" asp-controller="Account" asp-action="Login">DMC Workspace</a></div><p class="sub">✓ First 5 deals free · ✓ No card required · ✓ White-label proposals</p></div><div class="pulse"><div class="pulseTitle">MARKETPLACE PULSE · LIVE</div><div class="metrics"><div class="metric"><b>@Model.Rfqs.ToString("N0")</b><small>RFQs created</small></div><div class="metric"><b>@Model.Quotes.ToString("N0")</b><small>Quotes received</small></div><div class="metric"><b>@Model.Connections.ToString("N0")</b><small>Connected deals</small></div><div class="metric"><b>@Model.Dmcs.ToString("N0")</b><small>DMCs · @Model.Destinations destinations</small></div></div><div class="dest"><b style="font-size:10px">Destination DMC coverage</b>
+@foreach (var (destination, dmcs) in Model.Coverage)
+{
+    <div class="bar"><span>@destination</span><i class="track"><i class="fill" style="width:@(dmcs * 92 / maxCoverage)%"></i></i><b>@dmcs</b></div>
+}
+</div></div></div></div></section>

@@ -1,0 +1,36 @@
+@model ProposalViewModel
+@{
+    var p = Model.Proposal;
+    var rfq = Model.Rfq;
+    ViewData["Title"] = p.Title;
+    var approved = p.ApprovalStatus == ApprovalStatus.Approved;
+    var nights = rfq.EffectiveNights ?? Math.Max(0, p.Days.Count - 1);
+    var travellers = rfq.Adults + rfq.Children == p.Travellers
+        ? $"{rfq.Adults} Adult{(rfq.Adults == 1 ? "" : "s")}{(rfq.Children > 0 ? $" · {rfq.Children} Child{(rfq.Children == 1 ? "" : "ren")}" : "")}"
+        : $"{p.Travellers} Traveller{(p.Travellers == 1 ? "" : "s")}";
+    var dates = rfq.StartDate.HasValue && rfq.EndDate.HasValue ? $"{rfq.StartDate:dd MMM} – {rfq.EndDate:dd MMM yyyy}" : $"{rfq.TravelMonth} {rfq.TravelYear}";
+    var cities = string.Join(" · ", p.Days.Select(d => d.City).Where(c => c.Length > 0).Distinct());
+    var agentLines = new[] { p.BrandName, p.GstNumber.Length > 0 ? "GST: " + p.GstNumber : "", p.Contact }.Where(x => x.Length > 0);
+    var dayPics = new[]
+    {
+        "photo-1563492065599-3520f775eeed", "photo-1528181304800-259b08848526", "photo-1540202404-a2f29016b523", "photo-1552465011-b4e21bf6e79a",
+        "photo-1589394815804-964ed0be2eb5", "photo-1534008897995-27a23e859048", "photo-1504214208698-ea1916a2195a"
+    };
+}
+<section id="customer" class="page active"><header class="top noPrint"><div><a class="btn" asp-action="Edit" asp-route-id="@p.RfqId">← Edit Proposal</a> <b>Customer Proposal Preview</b><span class="sub"> · @(approved ? "Manager approved ✓" : "Preview · pending manager approval")</span></div><button class="btn dark" id="print" onclick="window.print()">Print / Save PDF</button></header><div class="shell"><div class="preview">
+<div class="proposalHero"><div class="heroCopy"><small class="gold">@p.BrandName.ToUpperInvariant()</small><div class="sub" style="color:#b8c8c4;margin-top:8px">YOUR JOURNEY TO</div><h2 style="font-size:30px;margin:3px 0">@p.Title</h2><p style="font-size:9px;color:#d9e3df">Curated experiences. Seamless journeys. Unforgettable memories.</p></div><div class="heroPhoto"></div></div>
+<div class="proposalMeta"><div><small>TRAVELLERS</small><b>@travellers</b></div><div><small>TRAVEL DATES</small><b>@dates</b></div><div><small>DURATION</small><b>@nights Nights / @(nights + 1) Days</b></div></div>
+<div class="proposalColumns"><div><div style="background:linear-gradient(90deg,#d4a643,#f0c86e);color:#17201e;padding:7px 10px;border-radius:6px;font-size:8px;font-weight:950;margin-bottom:8px">DAY-WISE ITINERARY</div><div class="dayList">
+@for (var i = 0; i < p.Days.Count; i++)
+{
+    var day = p.Days[i];
+    <div class="previewDay photoDay"><div class="dayCopy"><b class="gold">DAY @(i + 1) · @day.City.ToUpperInvariant()</b><p style="margin:3px 0 0">
+    @foreach (var item in day.Items)
+    {
+        <span style="display:block">@item.Time · @item.Details</span>
+    }
+    </p></div><div class="dayPhoto" style="background-image:url('https://images.unsplash.com/@(dayPics[i % dayPics.Length])?auto=format&amp;fit=crop&amp;w=500&amp;q=80')" role="img" aria-label="@day.City travel image"><span>@day.City</span></div></div>
+}
+</div></div>
+<aside><div class="sidePanel"><h4>PACKAGE DETAILS</h4><p><b>Package inclusions</b></p><p>@p.Inclusions</p><p><b>Exclusions</b></p><p>@p.Exclusions</p><hr style="border:0;border-top:1px solid #b78a3444"><h4>YOUR STAY</h4><p>@(rfq.HotelCategory.Length > 0 ? rfq.HotelCategory + " Hotels" : "Handpicked hotels")<br>@cities</p><h4>AGENT DETAILS</h4><p>@Html.Raw(string.Join("<br>", agentLines.Select(Html.Encode)))</p></div><div class="pricebox"><small>FINAL CUSTOMER PRICE</small><h2 style="margin:4px">@Fmt.Money(Model.Price.Total)</h2><small>Valid for @p.Validity · subject to availability</small></div></aside></div>
+</div></div></section>

@@ -1,0 +1,26 @@
+@model BuilderViewModel
+@{
+    var rfq = Model.Rfq;
+    ViewData["Title"] = $"Quote Builder · {rfq.RfqNo}";
+    var chips = new[]
+    {
+        $"{rfq.Destination} · {rfq.DurationLabel}", $"{rfq.TravelLabel} · {rfq.Adults}A{(rfq.Children > 0 ? $" + {rfq.Children}C" : "")}",
+        rfq.HotelCategory.Length > 0 ? rfq.HotelCategory + " Hotel" : "", rfq.Vehicle.Length > 0 ? rfq.Vehicle + " Vehicle" : "",
+        rfq.FoodPrefs.Replace(",", " + "), rfq.Budget, rfq.Cities
+    }.Where(c => c.Length > 0);
+}
+<section id="builder" class="page active"><header class="top"><div><a class="btn" asp-controller="Dmc" asp-action="Index">←</a> <b>Quote Builder · @rfq.RfqNo</b></div><button class="btn primary" id="submitQuote">Submit Quote</button></header><div class="shell"><div class="titleRow"><div><span class="eyebrow">AGENT REQUEST</span><div class="reqChips">
+@foreach (var chip in chips)
+{
+    <span class="req">@chip</span>
+}
+</div></div><button class="btn" id="aiQuote">✨ AI Quote Copilot</button></div><div class="aiStrip"><b>AI Quote Copilot:</b> maps the RFQ into a draft response. DMC confirms hotels, price, availability and itinerary before submission.@(rfq.Priorities.Length > 0 ? $" Agent priorities: {rfq.Priorities}." : "")</div><div class="connectedDmcTools"><div><span class="eyebrow">AFTER AGENT CONNECTION</span><b style="display:block;margin-top:3px">Revise quote or send another itinerary option</b><div class="sub">Use after discussion with the connected agent. Previous submitted versions remain available.</div></div><div><button class="btn" id="reviseConnected">Create revision</button> <button class="btn" id="newConnectedOption">+ New option</button></div></div><div class="docImport"><div class="docImportTop"><div><span class="eyebrow">AI QUOTE IMPORT</span><h4>Upload DMC's existing quotation</h4><div class="sub">PDF or Word can use the DMC's own structure. AI extracts and maps it into the existing DMCGrid quote and itinerary builder.</div></div><span class="pill">PDF · DOC · DOCX</span></div><div class="docDrop"><div><b id="docName">Choose DMC quotation document</b><div class="sub">Nothing is submitted automatically. DMC reviews the mapped quote first.</div></div><div><input id="docFile" type="file" accept=".pdf,.doc,.docx" hidden><button class="btn" id="chooseDoc">Upload quotation</button> <button class="btn primary" id="readDoc" disabled>✨ Read &amp; Fill Quote</button></div></div><div id="docStatus" class="docStatus"></div><div id="docExtract" class="docExtract"></div></div><div id="pkgTabs" class="pkgTabs"></div><div class="builder"><div id="pkgBasics" class="card package"></div><div class="card"><div class="titleRow"><div><span class="eyebrow">DAY-WISE ITINERARY</span><h3 style="margin:3px 0">Selected package itinerary</h3></div><button class="btn" id="addDay">+ Day</button></div><div id="dayTabs" class="dayTabs"></div>
+<div style="display:flex;gap:7px;align-items:center;margin:8px 0">
+<button class="btn primary" id="editDmcItin">✎ Edit Day Itinerary</button>
+<button class="btn" id="saveDmcItin" style="display:none">✓ Save Day</button>
+<span class="sub" id="dmcEditHint">Tap Edit Day Itinerary to change time, city, activity, transfer, inclusions or notes.</span>
+</div><div id="activityArea"></div></div></div><div style="margin-top:9px;display:flex;gap:6px"><button class="btn" id="addPkg">+ Add Package Option</button><button class="btn" id="removePkg">Remove Current Package</button></div></div></section>
+@section Scripts {
+    <script>window.builderModel = @Json.Serialize(new { rfqId = rfq.RfqId, packages = Model.Packages, connected = Model.Connected });</script>
+    <script src="~/js/builder.js" asp-append-version="true"></script>
+}

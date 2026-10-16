@@ -1,0 +1,21 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    var demo = Model.ShowDemoAccounts;
+    string Email(string portal, string demoEmail) => Model.Portal == portal ? Model.Email : demo ? demoEmail : "";
+    string Message(string portal) => Model.Portal == portal ? Model.Message : "";
+}
+<section id="login" class="page active"><header class="top"><div class="brand">DMC<i>Grid</i></div><a class="btn" asp-controller="Home" asp-action="Index">← Home</a></header><div class="loginWrap"><div class="loginGrid">
+<form class="card" method="post" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl"><input type="hidden" name="portal" value="agent"><h2>Travel Agent Login</h2>
+@if (demo)
+{
+    <div class="demo"><b>Demo:</b> agent@dmcgrid.demo / Agent@123</div>
+}
+<div class="field"><label for="ae">Email</label><input id="ae" name="email" type="email" autocomplete="username" required value="@Email("agent", "agent@dmcgrid.demo")"></div><div class="field"><label for="ap">Password</label><input id="ap" name="password" type="password" autocomplete="current-password" required value="@(demo ? "Agent@123" : "")"></div><button class="btn primary" type="submit">Login as Agent</button><div class="msg err">@Message("agent")</div></form>
+<form class="card" method="post" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl"><input type="hidden" name="portal" value="dmc"><h2>DMC Login</h2>
+@if (demo)
+{
+    <div class="demo"><b>Demo:</b> dmc1@dmcgrid.demo / Dmc@123</div>
+}
+<div class="field"><label for="de">Email</label><input id="de" name="email" type="email" autocomplete="username" required value="@Email("dmc", "dmc1@dmcgrid.demo")"></div><div class="field"><label for="dp">Password</label><input id="dp" name="password" type="password" autocomplete="current-password" required value="@(demo ? "Dmc@123" : "")"></div><button class="btn dark" type="submit">Login as DMC</button><div class="msg err">@Message("dmc")</div></form>
+</div></div></section>

@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DmcGrid.Web/DmcGrid.Web.csproj" DefaultStartup="true" />
+    <Project Path="src/DmcGrid.Core/DmcGrid.Core.csproj" />
+    <Project Path="src/DmcGrid.Data/DmcGrid.Data.csproj" />
+  </Folder>
+</Solution>

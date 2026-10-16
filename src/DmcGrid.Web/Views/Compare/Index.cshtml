@@ -1,0 +1,27 @@
+@model CompareViewModel
+@{
+    var rfq = Model.Rfq;
+    ViewData["Title"] = $"Compare Quotes · {rfq.RfqNo}";
+    var dmcCount = Model.Packages.Select(p => p.DmcUserId).Distinct().Count();
+    var isConnected = Model.ConnectedDmcIds.Count > 0;
+    var hasProposal = Model.ChosenPackageId.HasValue;
+    var people = $"{rfq.Adults} Adult{(rfq.Adults == 1 ? "" : "s")}{(rfq.Children > 0 ? $" · {rfq.Children} Child{(rfq.Children == 1 ? "" : "ren")}" : "")}";
+    var requested = new
+    {
+        summary = $"{rfq.Destination} · {rfq.DurationLabel}",
+        people,
+        hotel = $"{rfq.HotelCategory} {rfq.RoomType}".Trim(),
+        vehicle = rfq.Vehicle,
+        food = rfq.FoodPrefs.Replace(",", " + "),
+        meal = rfq.MealPlan,
+        budget = rfq.Budget,
+        priority = rfq.Priorities,
+        intent = string.Join(" · ", new[] { rfq.Cities, rfq.Priorities }.Where(x => x.Length > 0))
+    };
+    string Step(bool done, bool now) => done ? "step done" : now ? "step now" : "step";
+}
+<section id="compare" class="page active"><header class="top"><div><a class="btn" asp-controller="Agent" asp-action="Index">← Queue</a> <b>Compare DMC Quotes</b><span class="sub"> · @rfq.RfqNo · @Model.Packages.Count option@(Model.Packages.Count == 1 ? "" : "s") from @dmcCount DMC@(dmcCount == 1 ? "" : "s")</span></div><button class="btn" id="closeRfq">@(rfq.Status == RfqStatus.Closed ? "Reactivate RFQ" : "Close RFQ")</button></header><div class="shell"><div class="steps"><span class="step done">✓ RFQ</span><span class="@Step(Model.Packages.Count > 0, false)">@(Model.Packages.Count > 0 ? "✓" : "2") Quotes</span><span class="@Step(isConnected, !isConnected)">@(isConnected ? "✓" : "3") Compare &amp; Select</span><span class="@Step(isConnected, false)">@(isConnected ? "✓" : "4") Connect</span><span class="@Step(false, isConnected)">5 Proposal</span><span class="step">6 Customer</span></div><div class="card connectbar"><div><b id="selectionText">Select package options below</b><div class="sub" id="connectionHint">Maximum 2 distinct DMCs. Unlimited options within those DMCs.</div></div><select id="billing"><option value="wallet">Wallet · @Fmt.Money(Model.Wallet)</option><option value="lead">Lead balance · @Model.Leads lead@(Model.Leads == 1 ? "" : "s")</option><option value="plan5">₹4,999 plan · 5 leads</option><option value="plan8">₹7,999 plan · 8 leads</option></select><button class="btn primary" id="connect" disabled>Connect selected DMCs</button></div><div id="connectedWorkspace" class="connectedWorkspace" style="display:none"><div class="connectedHead"><div><span class="eyebrow">CONNECTED DMC OPTIONS</span><h3 style="margin:3px 0">Choose itinerary for final proposal</h3><div class="sub">Connected DMCs can revise an itinerary or add new options after discussion. All earlier versions remain visible.</div></div><span class="pill">No additional lead charge</span></div><div id="connectedOptions" class="connectedOptions"></div><div class="timeline" id="quoteTimeline"></div><a class="btn primary" id="continueFinal" asp-controller="Proposal" asp-action="Edit" asp-route-id="@rfq.RfqId" style="margin-top:10px;@(hasProposal ? "" : "display:none")">Create Final Customer Itinerary →</a></div><div class="matrixWrap"><div id="matrix" class="matrix"></div></div><div class="card itin" id="itinCard"><div class="titleRow"><div><b>Day-wise itinerary comparison</b><div class="sub">Compare the requested journey against each DMC package, day by day.</div></div><div id="compareDays" class="dayTabs"></div></div><div id="itinCards" class="itinCards"></div><div class="timeCompareBlock"><b>Time-wise itinerary comparison</b><div class="sub">Activities are normalized into four standard time windows. Multiple activities in the same window are shown together in chronological order.</div><div id="timeCompareTable" class="timeCompareTable"></div></div></div></div></section>
+@section Scripts {
+    <script>window.compareModel = @Json.Serialize(new { rfqId = rfq.RfqId, closed = rfq.Status == RfqStatus.Closed, requested, packages = Model.Packages, connectedDmcIds = Model.ConnectedDmcIds, chosenPackageId = Model.ChosenPackageId });</script>
+    <script src="~/js/compare.js" asp-append-version="true"></script>
+}
